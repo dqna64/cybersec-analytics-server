@@ -19,21 +19,66 @@
 #         incident = json.loads(infile.read())
 #         col.insert(incident)
 
+from cmath import log
 from pymongo import MongoClient
 from pprint import pprint
 import os
+import json
+from exceptions import EnvVarException
 
-try:
-    connection_str = os.environ["MONGODB_SECREVIEW_DB_CONN_STR"]
-except KeyError:
-    print(
-        "Could not find env var MONGODB_SECREVIEW_DB_CONN_STR. Required to connect to MongoDB database."
-    )
-    raise
 
-client = MongoClient(connection_str)
-db = client.admin
+def populate_db():
+    connection_str = os.environ.get("MONGODB_SECREVIEW_CONNSTR")
+    if connection_str is None:
+        raise EnvVarException(
+            "Could not find env var MONGODB_SECREVIEW_CONNSTR. Required to connect to MongoDB database."
+        )
 
-serverStatusResult = db.command("serverStatus")
+    client = MongoClient(connection_str)
+    db = client[DB_NAME]
+    # collection = client[COLLECN_NAME]
+    collecn = db[COLLECN_NAME]
 
-pprint(serverStatusResult)
+    serverStatusResult = db.command("serverStatus")
+
+    pprint(serverStatusResult)
+
+    print(f"Collections in db '{DB_NAME}': {db.list_collection_names()}")
+
+    try:
+        (_, _, file_names) = next(os.walk(DATA_PATH))
+    except StopIteration:
+        print(f"Iterator of os.walk('{DATA_PATH}') is empty")
+        file_names = []
+
+    for file_name in file_names:
+        try:
+            f = open(os.path.join(DATA_PATH, file_name))
+        except FileNotFoundError as err:
+            print(err)
+            print(f"file_name: {file_name}")
+            continue
+
+        try:
+            incident_data = json.load(f)
+        except Exception as err:
+            print(err)
+            print(f"Could not deserialise fd of file name {file_name}")
+            continue
+        find_result = collecn.find_one({"incident_id": incident_data["incident_id"]})
+        if find_result is None:
+            print(
+                f"Incident with id {incident_data['incident_id']} not found in collection {COLLECN_NAME}, inserting."
+            )
+            collecn.insert_one(incident_data)
+        else:
+            print(
+                f"Incident with id {incident_data['incident_id']} already exists in collection {COLLECN_NAME}."
+            )
+
+
+if __name__ == "__main__":
+    DB_NAME = "secreview-db"
+    COLLECN_NAME = "cybersec-incidents-collecn"
+    DATA_PATH = "../VCDB/data/json/validated/"
+    populate_db()
