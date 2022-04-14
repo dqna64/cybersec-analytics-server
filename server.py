@@ -125,6 +125,18 @@ def get_actor_types_and_varieties():
 def get_actor_motives():
     """
     Gets count of each actor motive.
+    {
+        "external": {
+            "financial": int,
+        },
+        "internal": {
+            "grudge": int,
+            "ideology": int,
+        },
+        "partner": {
+            "fun": int,
+        }
+    }
     """
     if incidents_collecn is None:
         print(f"Cybersec incidents collection not yet loaded.")
