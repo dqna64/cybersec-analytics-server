@@ -4,7 +4,6 @@ from exceptions import EnvVarException
 
 DB_NAME = "secreview-db"
 COLLECN_NAME = "cybersec-incidents-collecn"
-DATA_PATH = "../VCDB/data/json/validated/"
 
 
 def load_db(func):

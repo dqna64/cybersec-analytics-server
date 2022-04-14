@@ -1,8 +1,7 @@
-from pymongo import MongoClient
 from pprint import pprint
 import os
 import json
-from exceptions import EnvVarException
+from loadCollecn import load_collecn
 
 DB_NAME = "secreview-db"
 COLLECN_NAME = "cybersec-incidents-collecn"
@@ -53,20 +52,5 @@ def query1(collecn):
 
 
 if __name__ == "__main__":
-    connection_str = os.environ.get("MONGODB_SECREVIEW_CONNSTR")
-    if connection_str is None:
-        raise EnvVarException(
-            "Could not find env var MONGODB_SECREVIEW_CONNSTR. Required to connect to MongoDB database."
-        )
-
-    client = MongoClient(connection_str)
-    db = client[DB_NAME]
-    collecn = db[COLLECN_NAME]
-
-    serverStatusResult = db.command("serverStatus")
-    pprint(serverStatusResult)
-    print(f"Collections in db '{DB_NAME}': {db.list_collection_names()}")
-
-    # populate_db(collecn)
-
-    query1(collecn)
+    collecn = load_collecn(DB_NAME, COLLECN_NAME)
+    populate_db(collecn)
