@@ -225,6 +225,44 @@ def get_action_types_and_varieties():
     return json.dumps(result)
 
 
+@app.route("/action_types_and_vectors", methods=["GET"])
+def get_action_types_and_vectors():
+    """
+    Gets count of each action type and vector.
+    """
+    if incidents_collecn is None:
+        print(f"Cybersec incidents collection not yet loaded.")
+        return json.dumps({})
+    if schemas_collecn is None:
+        print(f"Schemas collection not yet loaded.")
+        return json.dumps({})
+
+    vcdb_enum = schemas_collecn.find_one({"schema_name": "vcdb_enum"})
+    type_keys = set(vcdb_enum["action"].keys())
+    result = {}
+    for type_key in type_keys:
+        if type_key not in ("unknown", "environmental"):
+            result[type_key] = defaultdict(int)
+            ## Varieties for this action type
+            vector_keys = vcdb_enum["action"][type_key]["vector"]
+            for vector_key in vector_keys:
+                result[type_key][vector_key] = 0
+        else:
+            result[type_key] = 0
+
+    docs = incidents_collecn.find()
+    for doc in docs:
+        for type, val in doc["action"].items():
+            ## 'vector' not present in type 'unknown' or 'environmental'
+            if type not in ("unknown", "environmental"):
+                for vector in val["vector"]:
+                    result[type][vector] += 1
+            else:
+                result[type] += 1
+
+    return json.dumps(result)
+
+
 if __name__ == "__main__":
     incidents_collecn = load_collecn(DB_NAME, INCIDENTS_COLLECN_NAME)
     schemas_collecn = load_collecn(DB_NAME, SCHEMAS_COLLECN_NAME)
