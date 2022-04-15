@@ -187,10 +187,10 @@ def get_actor_countries():
     return json.dumps(result)
 
 
-@app.route("/action_types", methods=["GET"])
-def get_action_types():
+@app.route("/action_types_and_varieties", methods=["GET"])
+def get_action_types_and_varieties():
     """
-    Gets count of each action type.
+    Gets count of each action type and variety.
     """
     if incidents_collecn is None:
         print(f"Cybersec incidents collection not yet loaded.")
@@ -200,15 +200,27 @@ def get_action_types():
         return json.dumps({})
 
     vcdb_enum = schemas_collecn.find_one({"schema_name": "vcdb_enum"})
-    ## Get set of keys from external, internal and partner countries (they should
-    # be the same, but this is just to be safe).
-    keys = set(vcdb_enum["action"].keys())
-    result = dict.fromkeys(keys, 0)
+    type_keys = set(vcdb_enum["action"].keys())
+    result = {}
+    for type_key in type_keys:
+        if type_key != "unknown":
+            result[type_key] = {}
+            ## Varieties for this action type
+            variety_keys = vcdb_enum["action"][type_key]["variety"]
+            for variety_key in variety_keys:
+                result[type_key][variety_key] = 0
+        else:
+            result[type_key] = 0
 
-    docs = incidents_collecn.find(projection={"action"})
+    docs = incidents_collecn.find()
     for doc in docs:
-        for action in doc["action"].keys():
-            result[action] += 1
+        for type, val in doc["action"].items():
+            ## 'variety' not present in type 'unknown'
+            if type != "unknown":
+                for variety in val["variety"]:
+                    result[type][variety] += 1
+            else:
+                result[type] += 1
 
     return json.dumps(result)
 
