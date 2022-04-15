@@ -97,12 +97,52 @@ def get_actor_types_and_varieties():
             varieties = doc["actor"]["external"]["variety"]
             for variety in varieties:
                 result["external"][variety] += 1
-        elif "internal" in doc["actor"]:
+        if "internal" in doc["actor"]:
             varieties = doc["actor"]["internal"]["variety"]
             for variety in varieties:
                 result["internal"][variety] += 1
-        elif "partner" in doc["actor"]:
+        if "partner" in doc["actor"]:
             result["partner"] += 1
+
+    return json.dumps(result)
+
+
+@app.route("/actor_motives", methods=["GET"])
+def get_actor_motives():
+    """
+    Gets count of each actor motive.
+    """
+    if incidents_collecn is None:
+        print(f"Cybersec incidents collection not yet loaded.")
+        return json.dumps({})
+    if schemas_collecn is None:
+        print(f"Schemas collection not yet loaded.")
+        return json.dumps({})
+
+    vcdb_enum = schemas_collecn.find_one({"schema_name": "vcdb_enum"})
+    ## Get set of keys from external, internal and partner motives (they should
+    # be the same, but this is just to be safe).
+    keys = set.union(
+        set(vcdb_enum["actor"]["external"]["motive"]),
+        set(vcdb_enum["actor"]["internal"]["motive"]),
+        set(vcdb_enum["actor"]["partner"]["motive"]),
+    )
+    result = dict.fromkeys(keys, 0)
+
+    docs = incidents_collecn.find()
+    for doc in docs:
+        if "external" in doc["actor"]:
+            motives = doc["actor"]["external"]["motive"]
+            for motive in motives:
+                result[motive] += 1
+        if "internal" in doc["actor"]:
+            motives = doc["actor"]["internal"]["motive"]
+            for motive in motives:
+                result[motive] += 1
+        if "partner" in doc["actor"]:
+            motives = doc["actor"]["partner"]["motive"]
+            for motive in motives:
+                result[motive] += 1
 
     return json.dumps(result)
 
