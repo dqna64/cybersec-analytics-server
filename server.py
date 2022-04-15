@@ -6,9 +6,9 @@ $ python -m server
 from flask import Flask
 import json
 from loadCollecn import load_collecn
-from loadDbDec import COLLECN_NAME, load_db
 from bson import json_util
 from random import shuffle
+from markupsafe import escape
 
 MAX_DOCS_DUMP = 1200
 DB_NAME = "secreview-db"
@@ -27,18 +27,18 @@ def hello():
     return "<p>Greetings world!</p>"
 
 
-@app.route("/all-incidents", methods=["GET"])
-def get_all_incidents():
+@app.route("/incidents/<int:limit>", methods=["GET"])
+def get_incidents(limit):
     """
-    Returns a list of all documents in collection.
+    Returns a list of documents in incidents_collecn. Limited to <limit> num of docs.
     """
     if incidents_collecn is None:
         print(f"Cybersec incidents collection not yet loaded.")
         return json.dumps({})
     result = list(incidents_collecn.find())
-    shuffle(result)  ## In-place shuffle
-    if len(result) > MAX_DOCS_DUMP:
-        result = result[:MAX_DOCS_DUMP]
+    shuffle(result)
+    if len(result) > limit:
+        result = result[:limit]
     return json.dumps(result, default=json_util.default)
 
 
