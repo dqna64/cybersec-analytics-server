@@ -37,6 +37,31 @@ def save_vcdb_merged_schema(collecn):
     return merged_schema
 
 
+def save_vcdb_enum(collecn):
+    file_name = "vcdb-enum.json"
+    fd = open(os.path.join(DATA_PATH, file_name))
+
+    merged_enum = None
+    try:
+        merged_enum = json.load(fd)
+    except Exception as err:
+        print(f"Could not deserialise fd of file name {file_name}")
+        raise err
+
+    schema_name = "vcdb_enum"
+    merged_enum["schema_name"] = schema_name
+
+    try:
+        collecn.replace_one({"schema_name": schema_name}, merged_enum, upsert=True)
+        print(f"Enum {schema_name} in collection {COLLECN_NAME} has been replaced.")
+    except Exception as err:
+        print(f"Enum {schema_name} in collection {COLLECN_NAME} could not be replaced.")
+        raise err
+
+    return merged_enum
+
+
 if __name__ == "__main__":
     collecn = load_collecn(DB_NAME, COLLECN_NAME)
     save_vcdb_merged_schema(collecn)
+    save_vcdb_enum(collecn)
