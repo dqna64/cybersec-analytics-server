@@ -19,20 +19,20 @@ def save_vcdb_merged_schema(collecn):
         merged_schema = json.load(fd)
     except Exception as err:
         print(f"Could not deserialise fd of file name {file_name}")
-        print(err)
+        raise err
 
     schema_name = "vcdb_merged"
+    del merged_schema["$schema"]
     merged_schema["schema_name"] = schema_name
-    # pprint(merged_schema)
 
     try:
-        collecn.replace_one({"schema_name": schema_name}, merged_schema)
+        collecn.replace_one({"schema_name": schema_name}, merged_schema, upsert=True)
         print(f"Schema {schema_name} in collection {COLLECN_NAME} has been replaced.")
     except Exception as err:
         print(
             f"Schema {schema_name} in collection {COLLECN_NAME} could not be replaced."
         )
-        print(err)
+        raise err
 
     return merged_schema
 
