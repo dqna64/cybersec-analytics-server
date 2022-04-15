@@ -147,6 +147,72 @@ def get_actor_motives():
     return json.dumps(result)
 
 
+@app.route("/actor_countries", methods=["GET"])
+def get_actor_countries():
+    """
+    Gets count of each actor country.
+    """
+    if incidents_collecn is None:
+        print(f"Cybersec incidents collection not yet loaded.")
+        return json.dumps({})
+    if schemas_collecn is None:
+        print(f"Schemas collection not yet loaded.")
+        return json.dumps({})
+
+    vcdb_enum = schemas_collecn.find_one({"schema_name": "vcdb_enum"})
+    ## Get set of keys from external, internal and partner countries (they should
+    # be the same, but this is just to be safe).
+    keys = set.union(
+        set(vcdb_enum["actor"]["external"]["country"]),
+        set(vcdb_enum["actor"]["partner"]["country"]),
+        set(vcdb_enum["victim"]["country"]),
+    )
+    result = dict.fromkeys(keys, 0)
+
+    docs = incidents_collecn.find()
+    for doc in docs:
+        if "external" in doc["actor"] and "country" in doc["actor"]["external"]:
+            countries = doc["actor"]["external"]["country"]
+            for country in countries:
+                result[country] += 1
+        if "partner" in doc["actor"] and "country" in doc["actor"]["partner"]:
+            countries = doc["actor"]["partner"]["country"]
+            for country in countries:
+                result[country] += 1
+        if "internal" in doc["actor"]:
+            countries = doc["victim"]["country"]  ## Both guaranteed.
+            for country in countries:
+                result[country] += 1
+
+    return json.dumps(result)
+
+
+@app.route("/action_types", methods=["GET"])
+def get_action_types():
+    """
+    Gets count of each action type.
+    """
+    if incidents_collecn is None:
+        print(f"Cybersec incidents collection not yet loaded.")
+        return json.dumps({})
+    if schemas_collecn is None:
+        print(f"Schemas collection not yet loaded.")
+        return json.dumps({})
+
+    vcdb_enum = schemas_collecn.find_one({"schema_name": "vcdb_enum"})
+    ## Get set of keys from external, internal and partner countries (they should
+    # be the same, but this is just to be safe).
+    keys = set(vcdb_enum["action"].keys())
+    result = dict.fromkeys(keys, 0)
+
+    docs = incidents_collecn.find(projection={"action"})
+    for doc in docs:
+        for action in doc["action"].keys():
+            result[action] += 1
+
+    return json.dumps(result)
+
+
 if __name__ == "__main__":
     incidents_collecn = load_collecn(DB_NAME, INCIDENTS_COLLECN_NAME)
     schemas_collecn = load_collecn(DB_NAME, SCHEMAS_COLLECN_NAME)
