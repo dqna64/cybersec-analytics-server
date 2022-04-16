@@ -242,6 +242,7 @@ def get_action_types_and_vectors():
     result = {}
     for type_key in type_keys:
         if type_key not in ("unknown", "environmental"):
+            ## default dict bc some vector keys in documents are missing from enum
             result[type_key] = defaultdict(int)
             ## Varieties for this action type
             vector_keys = vcdb_enum["action"][type_key]["vector"]
