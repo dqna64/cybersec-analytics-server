@@ -96,8 +96,8 @@ def save_iso_3166(collecn):
 
 if __name__ == "__main__":
     schemas_collecn = load_collecn(DB_NAME, SCHEMAS_COLLECN_NAME)
-    # save_vcdb_merged_schema(schemas_collecn)
-    # save_vcdb_enum(schemas_collecn)
+    save_vcdb_merged_schema(schemas_collecn)
+    save_vcdb_enum(schemas_collecn)
 
-    iso3166_collecn = load_collecn(DB_NAME, ISO3166_COLLECN_NAME)
-    save_iso_3166(iso3166_collecn)
+    # iso3166_collecn = load_collecn(DB_NAME, ISO3166_COLLECN_NAME)
+    # save_iso_3166(iso3166_collecn)

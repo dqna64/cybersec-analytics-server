@@ -16,12 +16,14 @@ MAX_DOCS_DUMP = 1200
 DB_NAME = "secreview-db"
 INCIDENTS_COLLECN_NAME = "cybersec-incidents-collecn"
 SCHEMAS_COLLECN_NAME = "schemas-collecn"
+ISO3166_COLLECN_NAME = "iso3166-collecn"
 
 
 app = Flask(__name__)
 
 incidents_collecn = None
 schemas_collecn = None
+iso3166s_collecn = None
 
 
 @app.route("/")
@@ -53,6 +55,18 @@ def get_schema():
         print(f"Schemas collection not yet loaded.")
         return json.dumps({})
     result = schemas_collecn.find_one({"schema_name": "vcdb_merged"})
+    return json.dumps(result, default=json_util.default)
+
+
+@app.route("/iso3166", methods=["GET"])
+def get_iso3166():
+    """
+    Returns iso3166.
+    """
+    if iso3166s_collecn is None:
+        print(f"Schemas collection not yet loaded.")
+        return json.dumps({})
+    result = iso3166s_collecn.find_one({"schema_name": "vcdb_merged"})
     return json.dumps(result, default=json_util.default)
 
 
