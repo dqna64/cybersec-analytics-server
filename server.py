@@ -141,22 +141,26 @@ def get_actor_motives():
         set(vcdb_enum["actor"]["internal"]["motive"]),
         set(vcdb_enum["actor"]["partner"]["motive"]),
     )
-    result = dict.fromkeys(keys, 0)
+    result = {
+        "external": dict.fromkeys(keys, 0),
+        "internal": dict.fromkeys(keys, 0),
+        "partner": dict.fromkeys(keys, 0),
+    }
 
     docs = incidents_collecn.find()
     for doc in docs:
         if "external" in doc["actor"]:
             motives = doc["actor"]["external"]["motive"]
             for motive in motives:
-                result[motive] += 1
+                result["external"][motive] += 1
         if "internal" in doc["actor"]:
             motives = doc["actor"]["internal"]["motive"]
             for motive in motives:
-                result[motive] += 1
+                result["internal"][motive] += 1
         if "partner" in doc["actor"]:
             motives = doc["actor"]["partner"]["motive"]
             for motive in motives:
-                result[motive] += 1
+                result["partner"][motive] += 1
 
     return json.dumps(result)
 
